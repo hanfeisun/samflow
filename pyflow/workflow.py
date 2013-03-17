@@ -1,5 +1,3 @@
-from pprint import pprint
-
 from pyflow.command import AbstractCommand
 
 
@@ -40,11 +38,24 @@ class Workflow(AbstractCommand):
                 dangling_dict[cmd.name] = set(cmd._dangling_inputs)
         return dangling_dict
 
+    def _have_render_error(self):
+        error_keys = []
+        for cmd in self:
+            try:
+                cmd._render()
+            except KeyError as ke:
+                error_keys.append([cmd.name, ke])
+
+        if error_keys:
+            self._print_log("KeysError!", error_keys)
+            return True
+        return False
+
     def invoke(self):
-        dangling_inputs = self._dangling_inputs
-        if dangling_inputs:
-            print("The following files might be dangling. Please check whether they exists")
-            pprint(dangling_inputs)
+        if self._have_render_error():
+            return False
+
+        if self.have_dangling:
             return False
         print("{0:-^80}".format("No dangling files. Workflow started successfully"))
         for cmd in self:
@@ -55,13 +66,10 @@ class Workflow(AbstractCommand):
         print("{0:-^80}".format("Workflow finished successfully"))
         return True
 
-    def set_option(self, verbose_level=1, dry_run=False, recursive=True, resume=False):
-        self.verbose_level = verbose_level
-        self.dry_run_mode = dry_run
-        self.resume = resume
-        if recursive:
-            for cmd in self._commands:
-                cmd.set_option(verbose_level, dry_run, True, resume)
+    def set_option(self, **args):
+        AbstractCommand.set_option(self, **args)
+        for cmd in self._commands:
+            cmd.set_option(**args)
 
 def attach_back(parent : Workflow, child : AbstractCommand):
     parent.add_back(child)
