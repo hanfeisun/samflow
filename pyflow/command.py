@@ -15,6 +15,7 @@ class AbstractCommand(object):
         self.dry_run_mode = False
         self.resume = False
         self.fetch_output = False
+        self.allow_fail = False
         # if the parent of a command is itself, it's a root
         self._parent = self
         self._commands = []
@@ -57,6 +58,8 @@ class AbstractCommand(object):
             self._print_log("Error!","Missing inputs",  missing_i)
             return False
         execute_success = self._execute()
+        if self.allow_fail:
+            return True
         if not execute_success:
             return False
 
@@ -206,12 +209,13 @@ class ShellCommand(AbstractCommand):
             return True
         if self.fetch_output:
             try:
-                self.result =subprocess.check_output(cmd_rendered, shell=True, universal_newlines=True)
+                self.result =subprocess.check_output(cmd_rendered, shell=True, universal_newlines=True,
+                    executable = "/bin/bash")
             except subprocess.CalledProcessError:
                 return False
         else:
             try:
-                self.result = subprocess.check_call(cmd_rendered, shell=True)
+                self.result = subprocess.check_call(cmd_rendered, shell=True, executable = "/bin/bash")
             except subprocess.CalledProcessError:
                 return False
         return True
