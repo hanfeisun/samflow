@@ -1,6 +1,7 @@
 import os
 import copy
 import subprocess
+from time import strftime, localtime
 
 class AbstractCommand(object):
     def __init__(self, template=None, tool=None, param = {},input=[], output=[],name=""):
@@ -83,7 +84,7 @@ class AbstractCommand(object):
         return True
 
 
-    def set_option(self, verbose_level=1, dry_run=False, recursive=True, resume = False):
+    def set_option(self, **args):
         """
         :type verbose_level: int
         verbose_level:  1 - only show fatal errors          (quiet mode)
@@ -91,9 +92,8 @@ class AbstractCommand(object):
                         3 - show workflow details           (verbose mode)
                         4 - debug mode                      (debug mode)
         """
-        self.verbose_level = verbose_level
-        self.dry_run_mode = dry_run
-        self.resume = resume
+        for k, v in args.items():
+            setattr(self, k, v)
 
     @property
     def clone(self):
@@ -107,7 +107,16 @@ class AbstractCommand(object):
         """ Hook method for `invoke` in dry run mode: Pretend to run but not invoke anything """
         pass
     def _print_log(self, head, *args):
-        return print("{head:<10}{name:<20}=>\t".format(head=head, name=self.name), *args)
+        if isinstance(self, ShellCommand) and head in ["Run", "Dry-run"]:
+            start_with = ""
+        else:
+            start_with = "#"
+        print("#[{time:<12}] {head:<10}  {name:<50} \n{prefix}".format(
+            head=head,
+            name=self.name,
+            time = strftime("%Y-%m-%d %H:%M:%S", localtime()),
+            prefix = start_with), *args)
+        print()
 
     def _execute(self):
         """
@@ -211,7 +220,7 @@ class ShellCommand(AbstractCommand):
         self.fetch_output = False
 
     def _simulate(self):
-        print("Dry invoke %s\t<=\t"%self.name, self._render())
+        self._print_log("Dry-run", self._render())
 
     def _execute(self):
         cmd_rendered = self._render()
@@ -249,7 +258,7 @@ class PythonCommand(AbstractCommand):
         print("Executing Function: ", self._render())
         return self.template(input=self.input, output=self.output, param = self.param)
     def _simulate(self):
-        print("Dry invoke %s\t<=\t"%self.name, self._render() )
+        self._print_log("Dry-run", self._render())
         return None
 
 
