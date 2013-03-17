@@ -15,7 +15,10 @@ class AbstractCommand(object):
         self.dry_run_mode = False
         self.resume = False
         self.fetch_output = False
+
         self.allow_fail = False
+        self.allow_dangling = False
+
         # if the parent of a command is itself, it's a root
         self._parent = self
         self._commands = []
@@ -38,15 +41,25 @@ class AbstractCommand(object):
             setattr(self, k, v)
         return self
 
+    @property
+    def have_dangling(self):
+        dangling_inputs = self._dangling_inputs
+        if dangling_inputs:
+            if self.allow_dangling:
+                self._print_log("Warn", "Dangling inputs ", dangling_inputs)
+            else:
+                self._print_log("Error!", "Dangling inputs ", dangling_inputs)
+                return True
+        return False
+
     def invoke(self):
         """
         Invoke the command, return True if no trouble encountered.
         Dry run mode check files `dangling` for only input
         Non-dry run mode check `missing` for both input and output
         """
-        dangling_inputs = self._dangling_inputs
-        if dangling_inputs:
-            self._print_log("Error!", "Dangling inputs ", dangling_inputs)
+
+        if self.have_dangling:
             return False
 
         if self.dry_run_mode:
