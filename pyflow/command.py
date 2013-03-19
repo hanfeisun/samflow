@@ -2,6 +2,7 @@ import os
 import copy
 import subprocess
 from time import strftime, localtime
+from pyflow.helper import fetch
 
 class AbstractCommand(object):
     def __init__(self, template=None, tool=None, param = {},input=[], output=[],name=""):
@@ -59,29 +60,32 @@ class AbstractCommand(object):
         Dry run mode check files `dangling` for only input
         Non-dry run mode check `missing` for both input and output
         """
+        try:
+            if self.have_dangling:
+                return False
 
-        if self.have_dangling:
-            return False
+            if self.dry_run_mode:
+                self.result = self._simulate()
+                return True
 
-        if self.dry_run_mode:
-            self.result = self._simulate()
+            missing_i = self._missing_inputs
+            if missing_i:
+                self._print_log("Error!","Missing inputs",  missing_i)
+                return False
+            execute_success = self._execute()
+            if self.allow_fail:
+                return True
+            if not execute_success:
+                return False
+
+            missing_o = self._missing_outputs
+            if missing_o:
+                self._print_log("Error!", "Missing outputs", missing_o)
+                return False
             return True
-
-        missing_i = self._missing_inputs
-        if missing_i:
-            self._print_log("Error!","Missing inputs",  missing_i)
-            return False
-        execute_success = self._execute()
-        if self.allow_fail:
-            return True
-        if not execute_success:
-            return False
-
-        missing_o = self._missing_outputs
-        if missing_o:
-            self._print_log("Error!", "Missing outputs", missing_o)
-            return False
-        return True
+        except:
+            print("Exception encountered @" ,self.name, self.template)
+            raise
 
 
     def set_option(self, **args):
@@ -142,17 +146,24 @@ class AbstractCommand(object):
         return ret
 
     def _missing(self, files):
+
         missing = []
-        for i in files:
-            if not os.path.exists(i):
-                missing.append(i)
-                continue
-            if self._allow_zero_byte_file:
-                continue
-            if os.path.isfile(i) and os.path.getsize(i) == 0:
-                missing.append(i)
-                continue
-        return missing
+        files = fetch(files)
+
+        try:
+            for i in files:
+                if not os.path.exists(i):
+                    missing.append(i)
+                    continue
+                if self._allow_zero_byte_file:
+                    continue
+                if os.path.isfile(i) and os.path.getsize(i) == 0:
+                    missing.append(i)
+                    continue
+            return missing
+        except:
+            print("Exception encountered @", self.name, self.template)
+            raise
 
     @property
     def _missing_inputs(self):
@@ -195,12 +206,17 @@ class AbstractCommand(object):
         return self if self._is_root else self._parent._root
 
     def _collect(self, obj):
+        ret = []
         if isinstance(obj, dict):
-            return obj.values()
+            for i in obj.values():
+                ret.extend(self._collect(i))
         elif isinstance(obj, str):
-            return [obj]
-        else:
-            return obj
+            ret = [obj]
+        elif isinstance(obj, list):
+            ret = obj
+
+        return ret
+
 
     @property
     def _inputs(self):
@@ -255,8 +271,9 @@ class PythonCommand(AbstractCommand):
     def _render(self):
         return "%s < %s > %s" %(self.template, self._inputs, self._outputs)
     def _execute(self):
-        print("Executing Function: ", self._render())
-        return self.template(input=self.input, output=self.output, param = self.param)
+        self._print_log("Execute: ", self._render())
+        self.result = self.template(input=self.input, output=self.output, param = self.param)
+        return True
     def _simulate(self):
         self._print_log("Dry-run", self._render())
         return None
