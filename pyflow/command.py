@@ -84,7 +84,11 @@ class AbstractCommand(object):
                 return False
             return True
         except:
-            print("Exception encountered @" ,self.name, self.template)
+            print("Exception encountered @" ,self.name)
+            print("template", self.template)
+            print("input: " , self.input)
+            print("output: " , self.output)
+            print("param: ", self.param)
             raise
 
 
@@ -266,6 +270,11 @@ class ShellCommand(AbstractCommand):
     def set_stdout_collecting(self):
         self.fetch_output = True
         return self
+
+class ThrowableShellCommand(ShellCommand):
+    def _execute(self):
+        if not ShellCommand._execute(self):
+            raise BaseException
 
 class PythonCommand(AbstractCommand):
     def _render(self):
