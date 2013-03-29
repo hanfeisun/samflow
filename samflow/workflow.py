@@ -1,4 +1,4 @@
-from pyflow.command import AbstractCommand
+from samflow.command import AbstractCommand
 
 
 class Workflow(AbstractCommand):

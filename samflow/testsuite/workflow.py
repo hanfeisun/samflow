@@ -1,7 +1,7 @@
 import unittest
-from pyflow.workflow import Workflow, attach_back, attach_front
-from pyflow.command import ShellCommand
-from pyflow.command_on_jinja import JinjaFormatShellCommand as JinShCommand
+from samflow.workflow import Workflow, attach_back, attach_front
+from samflow.command import ShellCommand
+from samflow.command_on_jinja import JinjaFormatShellCommand as JinShCommand
 
 class WorkflowTestSuite(unittest.TestCase):
     def create_tree(self):

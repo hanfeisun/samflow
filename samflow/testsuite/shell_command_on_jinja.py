@@ -1,5 +1,5 @@
 import unittest
-from pyflow.command_on_jinja import JinjaFormatShellCommand as JShellCommand
+from samflow.command_on_jinja import JinjaFormatShellCommand as JShellCommand
 
 class JShellCommandTestCase(unittest.TestCase):
 

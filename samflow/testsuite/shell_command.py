@@ -1,5 +1,5 @@
 import unittest
-from pyflow.command import ShellCommand
+from samflow.command import ShellCommand
 
 class ShellCommandTestCase(unittest.TestCase):
 

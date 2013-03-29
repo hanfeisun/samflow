@@ -1,11 +1,12 @@
 import os
 import copy
+from copy import deepcopy
 import subprocess
 from time import strftime, localtime
-from pyflow.helper import fetch
+from samflow.helper import fetch
 
 class AbstractCommand(object):
-    def __init__(self, template=None, tool=None, param = {},input=[], output=[],name=""):
+    def __init__(self, template=None, tool=None, param={}, input=[], output=[], name=""):
         self.name = name
         self.input = input
         self.output = output
@@ -39,7 +40,7 @@ class AbstractCommand(object):
         return self
 
     def set(self, **kwargs):
-        for k,v in kwargs.items():
+        for k, v in kwargs.items():
             setattr(self, k, v)
         return self
 
@@ -70,7 +71,7 @@ class AbstractCommand(object):
 
             missing_i = self._missing_inputs
             if missing_i:
-                self._print_log("Error!","Missing inputs",  missing_i)
+                self._print_log("Error!", "Missing inputs", missing_i)
                 return False
             execute_success = self._execute()
             if self.allow_fail:
@@ -84,13 +85,16 @@ class AbstractCommand(object):
                 return False
             return True
         except:
-            print("Exception encountered @" ,self.name)
+            print("Exception encountered @", self.name)
             print("template", self.template)
-            print("input: " , self.input)
-            print("output: " , self.output)
+            print("input: ", self.input)
+            print("output: ", self.output)
             print("param: ", self.param)
             raise
 
+    def __deepcopy__(self, visit):
+        return type(self)(template=deepcopy(self.template), tool=deepcopy(self.tool), param=deepcopy(self.param),
+            input=deepcopy(self.input), output=deepcopy(self.output), name=deepcopy(self.name))
 
     def set_option(self, **args):
         """
@@ -114,6 +118,7 @@ class AbstractCommand(object):
     def _simulate(self):
         """ Hook method for `invoke` in dry run mode: Pretend to run but not invoke anything """
         pass
+
     def _print_log(self, head, *args):
         if isinstance(self, ShellCommand) and head in ["Run", "Dry-run"]:
             start_with = ""
@@ -122,8 +127,8 @@ class AbstractCommand(object):
         print("#[{time:<12}] {head:<10}  {name:<50} \n{prefix}".format(
             head=head,
             name=self.name,
-            time = strftime("%Y-%m-%d %H:%M:%S", localtime()),
-            prefix = start_with), *args)
+            time=strftime("%Y-%m-%d %H:%M:%S", localtime()),
+            prefix=start_with), *args)
         print()
 
     def _execute(self):
@@ -150,7 +155,6 @@ class AbstractCommand(object):
         return ret
 
     def _missing(self, files):
-
         missing = []
         files = fetch(files)
 
@@ -234,9 +238,8 @@ class AbstractCommand(object):
 
 
 class ShellCommand(AbstractCommand):
-
     def __init__(self, template=None, tool=None, param={}, input=[], output=[], name=""):
-        AbstractCommand.__init__(self,template, tool, param, input, output, name)
+        AbstractCommand.__init__(self, template, tool, param, input, output, name)
         self.fetch_output = False
 
     def _simulate(self):
@@ -251,38 +254,43 @@ class ShellCommand(AbstractCommand):
             return True
         if self.fetch_output:
             try:
-                self.result =subprocess.check_output(cmd_rendered, shell=True, universal_newlines=True,
-                    executable = "/bin/bash")
+                self.result = subprocess.check_output(cmd_rendered, shell=True, universal_newlines=True,
+                    executable="/bin/bash")
             except subprocess.CalledProcessError:
                 return False
         else:
             try:
-                self.result = subprocess.check_call(cmd_rendered, shell=True, executable = "/bin/bash")
+                self.result = subprocess.check_call(cmd_rendered, shell=True, executable="/bin/bash")
             except subprocess.CalledProcessError:
                 return False
         return True
 
     def _render(self):
         """ Method that return the rendered content  """
-        cmd = self.template.format(input=self.input,output=self.output,param=self.param,tool=self.tool)
+        cmd = self.template.format(input=self.input, output=self.output, param=self.param, tool=self.tool)
         return cmd
 
     def set_stdout_collecting(self):
         self.fetch_output = True
         return self
 
+
 class ThrowableShellCommand(ShellCommand):
     def _execute(self):
         if not ShellCommand._execute(self):
             raise BaseException
 
+
 class PythonCommand(AbstractCommand):
     def _render(self):
-        return "%s < %s > %s" %(self.template, self._inputs, self._outputs)
+        return "%s < %s > %s" % (self.template, self._inputs, self._outputs)
+
     def _execute(self):
         self._print_log("Execute: ", self._render())
-        self.result = self.template(input=self.input, output=self.output, param = self.param)
+
+        self.result = self.template(input=self.input, output=self.output, param=self.param)
         return True
+
     def _simulate(self):
         self._print_log("Dry-run", self._render())
         return None

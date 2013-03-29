@@ -1,9 +1,9 @@
 from distutils.core import setup
 
 setup(
-    name='Pyflow',
-    version='0.1',
-    packages=['pyflow', 'pyflow.testsuite'],
+    name='Samflow',
+    version='0.2',
+    packages=['samflow', 'samflow.testsuite'],
     url='https://bitbucket.org/hanfeisun/pyflow',
     license='MIT',
     author='Hanfei Sun',

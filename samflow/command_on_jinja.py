@@ -1,6 +1,6 @@
 from jinja2 import Environment
 
-from pyflow.command import ShellCommand
+from samflow.command import ShellCommand
 
 
 env = Environment()
