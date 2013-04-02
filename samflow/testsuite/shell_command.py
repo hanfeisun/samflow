@@ -34,6 +34,10 @@ class ShellCommandTestCase(unittest.TestCase):
         self.touch_files("temp_file", "temp_file.1")
         self.delete_files("temp_file", "temp_file.1")
 
+    def test_invoke_dangling_tool(self):
+        dangling_tool_command = ShellCommand("{tool} fun", tool="wolfyp")
+        self.assertFalse(dangling_tool_command.invoke())
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(ShellCommandTestCase))

@@ -31,7 +31,6 @@ class LazyCollector(Lazy):
 
 
 
-
 def fetch(lazy_obj):
     if isinstance(lazy_obj, Lazy):
         return lazy_obj.fetch()
@@ -49,3 +48,9 @@ def fake_fetch(lazy_obj):
     if isinstance(lazy_obj, list):
         return [fake_fetch(i) for i in lazy_obj]
     return lazy_obj
+
+def print_command_details(cmd):
+    print("template", cmd.template)
+    print("input: ", cmd.input)
+    print("output: ", cmd.output)
+    print("param: ", cmd.param)

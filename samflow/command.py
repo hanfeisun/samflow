@@ -3,7 +3,7 @@ import copy
 from copy import deepcopy
 import subprocess
 from time import strftime, localtime
-from samflow.helper import fetch
+from samflow.helper import fetch, print_command_details
 
 class AbstractCommand(object):
     def __init__(self, template=None, tool=None, param={}, input=[], output=[], name=""):
@@ -86,10 +86,7 @@ class AbstractCommand(object):
             return True
         except:
             print("Exception encountered @", self.name)
-            print("template", self.template)
-            print("input: ", self.input)
-            print("output: ", self.output)
-            print("param: ", self.param)
+            print_command_details(self)
             raise
 
     def __deepcopy__(self, visit):
@@ -274,6 +271,30 @@ class ShellCommand(AbstractCommand):
         self.fetch_output = True
         return self
 
+    @property
+    def _have_dangling_tools(self):
+        if not self.tool:
+            return False
+        elif which(self.tool):
+            return False
+        else:
+            return True
+
+    @property
+    def have_dangling(self):
+        have_dangling_inputs = AbstractCommand.have_dangling
+        have_dangling_tool = self._have_dangling_tools
+        have_dangling = have_dangling_inputs and have_dangling_tool
+
+        if have_dangling_tool:
+            if self.allow_dangling:
+                self._print_log("Warn", "Dangling tool ", self.tool)
+                return have_dangling
+            else:
+                self._print_log("Error!", "Dangling tool", self.tool)
+                return True
+        return have_dangling
+
 
 class ThrowableShellCommand(ShellCommand):
     def _execute(self):
@@ -298,8 +319,20 @@ class PythonCommand(AbstractCommand):
 
 
 
+def which(program):
+    import os
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            path = path.strip('"')
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
 
-
-
-
+    return None

@@ -1,4 +1,5 @@
 from samflow.command import AbstractCommand
+from samflow.helper import print_command_details
 
 
 class Workflow(AbstractCommand):
@@ -45,6 +46,10 @@ class Workflow(AbstractCommand):
                 cmd._render()
             except KeyError as ke:
                 error_keys.append([cmd.name, ke])
+            except:
+                print("Exception encountered when rendering @", cmd.name)
+                print_command_details(cmd)
+                raise
 
         if error_keys:
             self._print_log("KeysError!", error_keys)
