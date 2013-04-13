@@ -217,7 +217,8 @@ class AbstractCommand(object):
         elif isinstance(obj, str):
             ret = [obj]
         elif isinstance(obj, list):
-            ret = obj
+            for i in obj:
+                ret.extend(self._collect(i))
 
         return ret
 
