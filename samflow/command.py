@@ -3,7 +3,7 @@ import copy
 from copy import deepcopy
 import subprocess
 from time import strftime, localtime
-from samflow.helper import fetch, print_command_details
+from samflow.helper import print_command_details
 
 class AbstractCommand(object):
     def __init__(self, template=None, tool=None, param={}, input=[], output=[], name=""):
@@ -153,7 +153,6 @@ class AbstractCommand(object):
 
     def _missing(self, files):
         missing = []
-        files = fetch(files)
 
         try:
             for i in files:
