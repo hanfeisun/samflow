@@ -296,31 +296,37 @@ class ShellCommand(AbstractCommand):
         return have_dangling
 
 
-class ThrowableShellCommand(ShellCommand):
-    def _execute(self):
-        if not ShellCommand._execute(self):
-            raise BaseException
-
-
 class PythonCommand(AbstractCommand):
     def _render(self):
         return "%s < %s > %s" % (self.template, self._inputs, self._outputs)
 
+    def _simulate(self):
+        self._print_log("Dry-run", self._render())
+        return None
+
+    def _execute(self):
+        cmd_rendered = self._render()
+        self._print_log("Run", cmd_rendered)
+        can_skip = not self._missing_outputs
+        if self.resume and can_skip:
+            print("Resumed from existing result.. Skip")
+            return True
+
+        self.template(input=self.input, output=self.output, param=self.param)
+        return True
+
+
+class ReturnedPythonCommand(PythonCommand):
     def _execute(self):
         self._print_log("Execute: ", self._render())
 
         self.result = self.template(input=self.input, output=self.output, param=self.param)
         return True
 
-    def _simulate(self):
-        self._print_log("Dry-run", self._render())
-        return None
-
-
-
 
 def which(program):
     import os
+
     def is_exe(fpath):
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
