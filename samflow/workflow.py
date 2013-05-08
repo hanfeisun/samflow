@@ -62,7 +62,7 @@ class Workflow(AbstractCommand):
 
         if self.have_dangling:
             return False
-        print("{0:-^80}".format("No dangling files. Workflow started successfully"))
+
         for cmd in self:
             success_invoked = cmd.invoke()
             if not success_invoked:

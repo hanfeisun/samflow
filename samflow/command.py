@@ -316,14 +316,6 @@ class PythonCommand(AbstractCommand):
         return True
 
 
-class ReturnedPythonCommand(PythonCommand):
-    def _execute(self):
-        self._print_log("Execute: ", self._render())
-
-        self.result = self.template(input=self.input, output=self.output, param=self.param)
-        return True
-
-
 def which(program):
     import os
 
