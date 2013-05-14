@@ -328,7 +328,7 @@ def which(program):
             return program
     else:
         for path in os.environ["PATH"].split(os.pathsep):
-            path = os.path.expanduser(os.path.strip('"'))
+            path = os.path.expanduser(path.strip('"'))
             exe_file = os.path.join(path, program)
             if is_exe(exe_file):
                 return exe_file
