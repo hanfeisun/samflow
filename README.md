@@ -23,14 +23,14 @@ ShellCommand(
     name = "bowtie aln")
 ```
 
-## Dependency check
+## Dependency-check
 
 File mismatches and (third-party tool) runtime errors are common issues when writing workflows. 
 It is necessary to detect the issues as early as possible.
 
 Samflow checks the existing input/output information linearly for each commands in the whole workflow and throws error when it detects a "dangling" input, which is usually caused by runtime error from third-party tools or input files missing.
 
-The dependency check happends both in load-time (when the configuration is loaded) and in run-time (when the pipeline is running).
+The dependency-check happends both in load-time (when the configuration is loaded) and in run-time (when the pipeline is running).
 
 ## Who uses it
 
