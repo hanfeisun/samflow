@@ -1,4 +1,4 @@
-# samflow 
+# Samflow 
 
 Samflow is a Python library to help user write robust and concise codes for workflow.
 
