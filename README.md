@@ -25,10 +25,12 @@ ShellCommand(
 
 ## Dependency detection
 
-File mismatch is a common mistake when writing workflows. 
-Samflow utilized dependency detection to detect the mistake as early as possible, 
-both in load-time (when the configuration is loaded) and run-time (when the pipeline is running).
+File mismatches and (third-party tool) runtime errors are common issues when writing workflows. 
+It is necessary to detect the issues as early as possible.
 
+Samflow checks the existing input/output information linearly for each commands in the whole workflow and throws error when it detects a "dangling" input, which is usually caused by runtime error from third-party tools or input files missing.
+
+The dependency detection happends both in load-time (when the configuration is loaded) and in run-time (when the pipeline is running).
 
 ## Who uses it
 
