@@ -30,6 +30,8 @@ Samflow utilized dependency detection to detect the mistake as early as possible
 both in load-time (when the configuration is loaded) and run-time (when the pipeline is running).
 
 
+## Who uses it
 
+[Chilin](https://github.com/cfce/chilin) uses samflow currently.
 
 
